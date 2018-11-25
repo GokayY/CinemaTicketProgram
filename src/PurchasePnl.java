@@ -2,7 +2,6 @@
 import com.toedter.calendar.IDateEditor;
 import com.toedter.calendar.JCalendar;
 import java.sql.Connection;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -459,7 +458,7 @@ public class PurchasePnl extends javax.swing.JPanel {
                     "-----------------------------------------" +  line + 
                      "Thank you for your purchase. ";
             
-            JOptionPane.showMessageDialog(null, thnx, "Transaction Completed.", INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, thnx, "Transaction Completed.", INFORMATION_MESSAGE);
             // TxtFile creation and Printing Receipt
             JFileChooser file = new JFileChooser();
             int dialogResult = JOptionPane.showConfirmDialog(this, "Do you want to print the recipt?", "Receipt", JOptionPane.YES_NO_OPTION, QUESTION_MESSAGE, null);
