@@ -2,14 +2,22 @@
 import com.toedter.calendar.IDateEditor;
 import com.toedter.calendar.JCalendar;
 import java.sql.Connection;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
 import static javax.swing.JOptionPane.INFORMATION_MESSAGE;
+import static javax.swing.JOptionPane.QUESTION_MESSAGE;
 import javax.swing.SwingUtilities;
 
 public class PurchasePnl extends javax.swing.JPanel {
@@ -439,21 +447,39 @@ public class PurchasePnl extends javax.swing.JPanel {
             }
 
             // Booking information for customer which is shown in JOptionPane
-            String thnx = "Booking ID : " + id + "\n"
-                    + "Movie Title : " + movieTitle + "\n"
-                    + "Date : " + DateFormat.getDateInstance().format(date) + "\n"
-                    + "Time : " + time + "\n"
-                    + "Adult Ticket : " + adult + "\n"
-                    + "Student Ticket : " + student + "\n"
-                    + "Senior Ticket : " + senior + "\n"
-                    + "Total Amount : " + total + "\n"
-                    + "Thank you for your purchase. ";
-
-            JOptionPane.showMessageDialog(this, thnx, "Transaction Completed.", INFORMATION_MESSAGE);
+           String line =  System.getProperty("line.separator");
+            String thnx = "Booking ID : " + id + line + 
+                     "Movie Title : " + movieTitle + line + 
+                     "Date : " + DateFormat.getDateInstance().format(date) + line + 
+                     "Time : " + time + line + 
+                     "Adult Ticket : " + adult +  line + 
+                     "Student Ticket : " + student +  line + 
+                     "Senior Ticket : " + senior +  line + 
+                     "Total Amount : " + total +  line + 
+                    "-----------------------------------------" +  line + 
+                     "Thank you for your purchase. ";
+            
+            JOptionPane.showMessageDialog(null, thnx, "Transaction Completed.", INFORMATION_MESSAGE);
+            // TxtFile creation and Printing Receipt
+            JFileChooser file = new JFileChooser();
+            int dialogResult = JOptionPane.showConfirmDialog(this, "Do you want to print the recipt?", "Receipt", JOptionPane.YES_NO_OPTION, QUESTION_MESSAGE, null);
+            //JOptionPane.sh       showOptionDialog(ticketsPnl, "Do you want to print the recipt?", "Receipt", JOptionPane.YES_NO_OPTION, QUESTION_MESSAGE, null, null, total);
+            if (dialogResult == JOptionPane.YES_OPTION) {
+                file.setSelectedFile(new File("Receipt.txt"));
+                file.showSaveDialog(this);
+                try {
+                    FileWriter filestream = new FileWriter(file.getSelectedFile());
+                    filestream.write(thnx);
+                    filestream.close();
+                } catch (IOException ex) {
+                    Logger.getLogger(PurchasePnl.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
 
             // Creating new instance of the program and closing the active one.
             MainFrame main = new MainFrame();
             SwingUtilities.windowForComponent(this).dispose();
+
         }
     }//GEN-LAST:event_purchaseButtonActionPerformed
 
