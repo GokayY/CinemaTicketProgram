@@ -1,3 +1,4 @@
 /build/*
 /CinemaTicketDB/*
 /dist/*
+derby.log
