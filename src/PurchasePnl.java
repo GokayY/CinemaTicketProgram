@@ -20,11 +20,20 @@ public class PurchasePnl extends javax.swing.JPanel {
 
     protected IDateEditor dateEditor;
     protected JCalendar jcalendar;
-    MoviesPnl movies = new MoviesPnl();
-    DBCon connect = new DBCon();
+    MoviesPnl movies;
+    DBCon connect;
     String movieTitle;
 
-    public void calc_total() {
+
+    public PurchasePnl() {
+        initComponents();
+        connect = new DBCon();
+        movies = new MoviesPnl();
+        this.showPrices();
+        this.setDefaultDate(); //set default date
+    }
+    
+    private void calc_total() {
         //Ticket prices and Calculation of total amount
         int adult = Integer.valueOf(adultPiece.getValue().toString());
         int student = Integer.valueOf(studentPiece.getValue().toString());
@@ -92,10 +101,6 @@ public class PurchasePnl extends javax.swing.JPanel {
         // Setting minimum selectable date as today for JCalendar
         jcalendar.setMinSelectableDate(min);
         dateEditor.setMinSelectableDate(min);
-    }
-
-    public PurchasePnl() {
-        initComponents();
     }
 
     @SuppressWarnings("unchecked")

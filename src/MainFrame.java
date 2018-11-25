@@ -1,11 +1,12 @@
 
 import java.awt.GridBagLayout;
+import javax.swing.JOptionPane;
+import static javax.swing.JOptionPane.INFORMATION_MESSAGE;
 
 public class MainFrame extends javax.swing.JFrame {
 
     private MoviesPnl moviesPnl;
     private PurchasePnl purchasePnl;
-    private String movieTitle;
 
     public MainFrame() {
         // initializing JPanels
@@ -17,24 +18,23 @@ public class MainFrame extends javax.swing.JFrame {
         homePagePnl.setLayout(new GridBagLayout());
         homePagePnl.add(purchasePnl);
         homePagePnl.add(moviesPnl);
-        
+
         // Showing Prices from database
-        purchasePnl.showPrices();
-        
+        //purchasePnl.showPrices();
         //Set Title
         this.setTitle("Cinema Ticket Machine");
         setVisible(true);
-        
+
         hideAll(true);
     }
 
     public void hideAll(Boolean isInitial) {
         // Initial page is set as MoviesPnl 
-        
+
         moviesPnl.setVisible(isInitial);
         purchasePnl.setVisible(false);
-    }    
-    
+    }
+
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -151,11 +151,16 @@ public class MainFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_MoviesButtonActionPerformed
 
     private void PurchaseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_PurchaseButtonActionPerformed
-        hideAll(false);
-        purchasePnl.setVisible(true);
         purchasePnl.movieTitle = moviesPnl.getSelection(); // movie title variable from movies panel is set into movie title in purchase panel. This is shown in thnx message
-        purchasePnl.setDefaultDate(); //set default date
-        MoviesButton.setEnabled(false); // button disabling 
+        if (purchasePnl.movieTitle == null || purchasePnl.movieTitle.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Please select a movie.", "Selection Error", INFORMATION_MESSAGE);
+        } else {
+            hideAll(false);
+            purchasePnl.setVisible(true);
+
+            //purchasePnl.setDefaultDate(); //set default date
+            
+        }
     }//GEN-LAST:event_PurchaseButtonActionPerformed
 
     private void ClearSelectionButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ClearSelectionButtonActionPerformed
@@ -163,18 +168,9 @@ public class MainFrame extends javax.swing.JFrame {
         MainFrame main = new MainFrame();
         this.dispose();
     }//GEN-LAST:event_ClearSelectionButtonActionPerformed
-    
+
     public static void main(String args[]) {
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(AdminPanel.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
+
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 new MainFrame().setVisible(true);
