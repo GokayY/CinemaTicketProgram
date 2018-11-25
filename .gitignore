@@ -2,3 +2,7 @@
 /CinemaTicketDB/*
 /dist/*
 derby.log
+derby.properties
+nbproject/private/private\.properties
+
+nbproject/private/private\.xml
