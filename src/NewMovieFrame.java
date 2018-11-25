@@ -3,25 +3,19 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.sql.rowset.serial.SerialBlob;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
+import static javax.swing.JOptionPane.INFORMATION_MESSAGE;
 
 public class NewMovieFrame extends javax.swing.JFrame {
 
-    DBCon connect = new DBCon();
-    FileInputStream inputStream;
-    String filePath;
-    Blob blob;
-    byte[] image;
+    private byte[] image;
 
     public NewMovieFrame() {
         initComponents();
@@ -108,7 +102,8 @@ public class NewMovieFrame extends javax.swing.JFrame {
                             .addGap(18, 18, 18)
                             .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 154, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addGap(40, 40, 40)
-                            .addComponent(uploadButton)))))
+                            .addComponent(uploadButton))))
+                .addContainerGap(26, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -153,53 +148,49 @@ public class NewMovieFrame extends javax.swing.JFrame {
 
     private void SaveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_SaveButtonActionPerformed
         // This button is used as insert command in database
-        
-        // if condition is not to have wrong input into database
-        if ((yearInput != null) || (titleInput != null) || (genreInput != null) || (filePath != null)) {
-            int id = 0;
-            Connection connection = connect.getConnection();
-            String querId = "SELECT MAX(ID) ID FROM MOVIES";
-            
-            // Taking the last id in database for uniqueness 
-            // New id  for new record is set as id++;
+
+        // Declaring Variables
+        String year = yearInput.getText();
+        String title = titleInput.getText();
+        String genre = genreInput.getText();
+
+        // if condition is for not to have wrong input into database
+        if (year == null || year.isEmpty() || title == null || title.isEmpty()
+                || genre == null || genre.isEmpty() || image == null || image.length == 0) {
+            JOptionPane.showMessageDialog(this, "Please enter all information.", "Bad Input", INFORMATION_MESSAGE);
+        } else {
             try {
-                PreparedStatement ps = connection.prepareStatement(querId);
+                int id = 0;
+                DBConnection dbConnection = new DBConnection();
+                Connection connection = dbConnection.getConnection();
+
+                // Taking the last id in database for uniqueness 
+                // New id  for new record is set as id++;
+                String queryId = "SELECT MAX(ID) ID FROM MOVIES";
+                PreparedStatement ps = connection.prepareStatement(queryId);
                 ResultSet rs = ps.executeQuery();
                 if (rs.next()) {
-                    id = rs.getInt("id");
+                    id = rs.getInt("ID");
                 }
-            } catch (SQLException e) {
-                e.getSQLState();
-            }
-            id = id ++;
-            try {
-                // Declaring Variables
-                int year = Integer.parseInt(yearInput.getText());
-                String title = titleInput.getText();
-                String genre = genreInput.getText();
-                Blob bb = new SerialBlob(image);
-
+                id += 1;
                 // Inserting into database
-                if (yearInput.getText() != null && !yearInput.getText().isEmpty() || title == null && !title.isEmpty() || genre == null && !genre.isEmpty() || filePath == null && !filePath.isEmpty()) {
-                    String sql = "INSERT INTO MOVIES(ID,TITLE,GENRE,YEARSTART,BANNER ) VALUES (?,?,?,?,?)";
-                    PreparedStatement statement = connection.prepareStatement(sql);
+                String sql = "INSERT INTO MOVIES(ID,TITLE,GENRE,YEARSTART,BANNER ) VALUES (?,?,?,?,?)";
+                PreparedStatement statement = connection.prepareStatement(sql);
 
-                    statement.setInt(1, id);
-                    statement.setString(2, title);
-                    statement.setString(3, genre);
-                    statement.setInt(4, year);
-                    statement.setBlob(5, bb);
-                    statement.executeUpdate();
+                statement.setInt(1, id);
+                statement.setString(2, title);
+                statement.setString(3, genre);
+                statement.setInt(4, Integer.valueOf(year));
+                statement.setBlob(5, new SerialBlob(image));
+                statement.executeUpdate();
 
-                    connection.commit();
-                    connection.close();
-                } else {
-                    JOptionPane.showMessageDialog(null, "Please enter all information.", "Bad Input", ERROR_MESSAGE);
-                }
+                connection.commit();
+                connection.close();
+
+                this.setVisible(false);
             } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(null, "Please enter all information.", "Bad Input", ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, ex, "Error", ERROR_MESSAGE);
             }
-            this.setVisible(false);
         }
     }//GEN-LAST:event_SaveButtonActionPerformed
 
@@ -210,20 +201,18 @@ public class NewMovieFrame extends javax.swing.JFrame {
         JFileChooser fc = new JFileChooser();
         fc.showOpenDialog(null);
         File file = fc.getSelectedFile();
-        if (file != null) {
-            String filePath = file.getAbsolutePath();
-            jLabel5.setText(filePath);
+        if (file != null && file.isFile()) {
+            jLabel5.setText(file.getName());
             try {
-                inputStream = new FileInputStream(file);
+                FileInputStream inputStream = new FileInputStream(file);
                 image = new byte[inputStream.available()];
                 inputStream.read(image);
             } catch (FileNotFoundException ex) {
-                Logger.getLogger(NewMovieFrame.class.getName()).log(Level.SEVERE, null, ex);
+                JOptionPane.showMessageDialog(this, ex, "Error", ERROR_MESSAGE);
             } catch (IOException ex) {
-                Logger.getLogger(NewMovieFrame.class.getName()).log(Level.SEVERE, null, ex);
+                JOptionPane.showMessageDialog(this, ex, "Error", ERROR_MESSAGE);
             }
         }
-
     }//GEN-LAST:event_uploadButtonActionPerformed
 
     public static void main(String args[]) {

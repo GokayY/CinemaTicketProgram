@@ -1,10 +1,10 @@
 
 import com.toedter.calendar.IDateEditor;
 import com.toedter.calendar.JCalendar;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.text.DateFormat;
 import java.util.Date;
 import javax.swing.JOptionPane;
@@ -14,26 +14,31 @@ import javax.swing.SwingUtilities;
 
 public class PurchasePnl extends javax.swing.JPanel {
 
-    int studentTicket;
-    int adultTicket;
-    int seniorTicket;
-
     protected IDateEditor dateEditor;
     protected JCalendar jcalendar;
-    MoviesPnl movies;
-    DBCon connect;
-    String movieTitle;
 
+    private int studentTicket;
+    private int adultTicket;
+    private int seniorTicket;
+
+    private MoviesPnl moviesPnl;
+    private DBConnection dbConnection;
+    private Connection connection;
+    public String movieTitle;
 
     public PurchasePnl() {
         initComponents();
-        connect = new DBCon();
-        movies = new MoviesPnl();
-        this.showPrices();
-        this.setDefaultDate(); //set default date
+
+        dbConnection = new DBConnection();
+        connection = dbConnection.getConnection();
+        moviesPnl = new MoviesPnl();
+
+        // Setting default date for JCalendar
+        dateSelection.setDate(new Date());
+        this.ShowPrices();
     }
-    
-    private void calc_total() {
+
+    private void CalculateTotalAmount() {
         //Ticket prices and Calculation of total amount
         int adult = Integer.valueOf(adultPiece.getValue().toString());
         int student = Integer.valueOf(studentPiece.getValue().toString());
@@ -43,61 +48,48 @@ public class PurchasePnl extends javax.swing.JPanel {
         totalAmount.setText(String.valueOf(total));
     }
 
-    public void showPrices() {
+    private void ShowPrices() {
         // Showing prices in labels 
         // Prices are located in ADMIN.PRICE table in database.
-        
-        String sql1 = "SELECT * from ADMIN.PRICE WHERE ticket_type= 'Student' ";
-        String sql2 = "SELECT * from ADMIN.PRICE WHERE ticket_type= 'Adult' ";
-        String sql3 = "SELECT * from ADMIN.PRICE WHERE ticket_type= 'Senior' ";
-        ResultSet rs;
 
         try {
-            PreparedStatement ps = connect.getConnection().prepareStatement(sql1);
+            ResultSet rs;
+
+            //Student price
+            String sql = "SELECT * from ADMIN.PRICE WHERE ticket_type= 'Student' ";
+            PreparedStatement ps = connection.prepareStatement(sql);
             rs = ps.executeQuery();
             if (rs.next()) {
                 studentTicket = rs.getInt("price");
+                studentPriceTag.setText(String.valueOf(studentTicket));
+            }
+            rs.close();
+
+            //Adult price
+            sql = "SELECT * from ADMIN.PRICE WHERE ticket_type= 'Adult' ";
+            ps = connection.prepareStatement(sql);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                adultTicket = rs.getInt("price");
+                adultPriceTag.setText(String.valueOf(adultTicket));
+            }
+            rs.close();
+
+            //Senior price
+            sql = "SELECT * from ADMIN.PRICE WHERE ticket_type= 'Senior' ";
+            ps = dbConnection.getConnection().prepareStatement(sql);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                seniorTicket = rs.getInt("price");
+                seniorPriceTag.setText(String.valueOf(seniorTicket));
             }
             rs.close();
         } catch (SQLException e) {
-            e.getSQLState();
+            JOptionPane.showMessageDialog(this, e, "Error", ERROR_MESSAGE);
         }
-        String studentTicketStr = String.valueOf(studentTicket);
-        studentPriceTag.setText(studentTicketStr);
-
-        try {
-            PreparedStatement ps = connect.getConnection().prepareStatement(sql2);
-            ResultSet query1 = ps.executeQuery();
-            if (query1.next()) {
-                adultTicket = query1.getInt("price");
-            }
-            query1.close();
-        } catch (SQLException e) {
-            e.getSQLState();
-        }
-        String adultTicketStr = String.valueOf(adultTicket);
-        adultPriceTag.setText(adultTicketStr);
-
-        try {
-            PreparedStatement ps = connect.getConnection().prepareStatement(sql3);
-            ResultSet query2 = ps.executeQuery();
-            if (query2.next()) {
-                seniorTicket = query2.getInt("price");
-            }
-            query2.close();
-        } catch (SQLException e) {
-            e.getSQLState();
-        }
-        String seniorTicketStr = String.valueOf(seniorTicket);
-        seniorPriceTag.setText(seniorTicketStr);
     }
 
-    public void setDefaultDate() {
-        // Setting default date for JCalendar
-        dateSelection.setDate(new Date());
-    }
-
-    public void setMinSelectableDate(Date min) {
+    private void setMinSelectableDate(Date min) {
         // Setting minimum selectable date as today for JCalendar
         jcalendar.setMinSelectableDate(min);
         dateEditor.setMinSelectableDate(min);
@@ -416,33 +408,36 @@ public class PurchasePnl extends javax.swing.JPanel {
         String adult = adultPiece.getValue().toString();
         String student = studentPiece.getValue().toString();
         String senior = seniorPiece.getValue().toString();
-        int total = 0;
-        total = Integer.valueOf(totalAmount.getText());
-        String id = null;
+        int total = Integer.valueOf(totalAmount.getText());
 
         //if condition for not to have nullpointerException
         if ((total == 0) || (date == null) || movieTitle == null) {
-            JOptionPane.showMessageDialog(null, "Please Specify Movie Name, Tickets, Date and Time.", "Empty Field", ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please Specify Movie Name, Tickets, Date and Time.", "Empty Fields", INFORMATION_MESSAGE);
         } else {
             //Booking ID is set as Timestamp
-            id = String.valueOf(System.nanoTime());
-            
+            String id = String.valueOf(System.nanoTime());
+
             // Recording info from customer into database
-            String sql = "INSERT INTO ADMIN.PURCHASE VALUES ('" + id + "','" + movieTitle + "', '" + time + "','"
-                    + DateFormat.getDateInstance().format(date)
-                    + "'," + student + "," + adult + "," + senior + "," + total + ")";
-
             try {
-                Statement stmt = connect.getConnection().createStatement();
-                stmt.executeUpdate(sql);
-                connect.getConnection().commit();
-                connect.getConnection().close();
-            } catch (SQLException e) {
-                System.err.println("Got an exception! ");
-                System.err.println(e.getMessage());
 
+                String query = "INSERT INTO PURCHASE(Booking_Id,MovieTitle,Time,Date,StudentTicket,AdultTicket,SeniorTicket,TotalAmount) VALUES (?,?,?,?,?,?,?,?)";
+                PreparedStatement statement = connection.prepareStatement(query);
+                statement.setString(1, id);
+                statement.setString(2, movieTitle);
+                statement.setString(3, time);
+                statement.setString(4, DateFormat.getDateInstance().format(date));
+                statement.setInt(5, Integer.valueOf(student));
+                statement.setInt(6, Integer.valueOf(adult));
+                statement.setInt(7, Integer.valueOf(senior));
+                statement.setInt(8, total);
+                statement.executeUpdate();
+
+                connection.commit();
+                connection.close();
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(this, e, "Error", ERROR_MESSAGE);
             }
-            
+
             // Booking information for customer which is shown in JOptionPane
             String thnx = "Booking ID : " + id + "\n"
                     + "Movie Title : " + movieTitle + "\n"
@@ -454,26 +449,24 @@ public class PurchasePnl extends javax.swing.JPanel {
                     + "Total Amount : " + total + "\n"
                     + "Thank you for your purchase. ";
 
-            JOptionPane.showMessageDialog(null, thnx, "Transaction Completed.", INFORMATION_MESSAGE);
-            
+            JOptionPane.showMessageDialog(this, thnx, "Transaction Completed.", INFORMATION_MESSAGE);
+
             // Creating new instance of the program and closing the active one.
             MainFrame main = new MainFrame();
             SwingUtilities.windowForComponent(this).dispose();
-            
         }
     }//GEN-LAST:event_purchaseButtonActionPerformed
 
-
     private void seniorPieceStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_seniorPieceStateChanged
-        calc_total();
+        CalculateTotalAmount();
     }//GEN-LAST:event_seniorPieceStateChanged
 
     private void adultPieceStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_adultPieceStateChanged
-        calc_total();
+        CalculateTotalAmount();
     }//GEN-LAST:event_adultPieceStateChanged
 
     private void studentPieceStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_studentPieceStateChanged
-        calc_total();
+        CalculateTotalAmount();
     }//GEN-LAST:event_studentPieceStateChanged
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

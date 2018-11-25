@@ -3,7 +3,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-public class DBCon {
+public class DBConnection {
     // Creating Connection between application and database
     public Connection getConnection() {
         try {

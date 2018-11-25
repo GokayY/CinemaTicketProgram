@@ -28,9 +28,16 @@ public class MainFrame extends javax.swing.JFrame {
         hideAll(true);
     }
 
-    public void hideAll(Boolean isInitial) {
-        // Initial page is set as MoviesPnl 
+    public static void main(String args[]) {
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                new MainFrame().setVisible(true);
+            }
+        });
+    }
 
+    public void hideAll(Boolean isInitial) {
+        // Initial page is set as MoviesPnl
         moviesPnl.setVisible(isInitial);
         purchasePnl.setVisible(false);
     }
@@ -151,15 +158,13 @@ public class MainFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_MoviesButtonActionPerformed
 
     private void PurchaseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_PurchaseButtonActionPerformed
-        purchasePnl.movieTitle = moviesPnl.getSelection(); // movie title variable from movies panel is set into movie title in purchase panel. This is shown in thnx message
+        // movie title variable from movies panel is set into movie title in purchase panel. This is shown in thnx message
+        purchasePnl.movieTitle = moviesPnl.GetSelectedMovie();
         if (purchasePnl.movieTitle == null || purchasePnl.movieTitle.isEmpty()) {
-            JOptionPane.showMessageDialog(null, "Please select a movie.", "Selection Error", INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please select a movie.", "Selection Error", INFORMATION_MESSAGE);
         } else {
             hideAll(false);
             purchasePnl.setVisible(true);
-
-            //purchasePnl.setDefaultDate(); //set default date
-            
         }
     }//GEN-LAST:event_PurchaseButtonActionPerformed
 
@@ -169,14 +174,6 @@ public class MainFrame extends javax.swing.JFrame {
         this.dispose();
     }//GEN-LAST:event_ClearSelectionButtonActionPerformed
 
-    public static void main(String args[]) {
-
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new MainFrame().setVisible(true);
-            }
-        });
-    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton ClearSelectionButton;

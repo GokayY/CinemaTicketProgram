@@ -7,18 +7,28 @@ import java.sql.*;
 import javax.imageio.ImageIO;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
+import javax.swing.JOptionPane;
+import static javax.swing.JOptionPane.ERROR_MESSAGE;
 
 public final class MoviesPnl extends javax.swing.JPanel {
 
-    DBCon connect = new DBCon();
-    public String movieSelection;
+    private DBConnection dbConnection;
+    private Connection connection;
+    private String selectedMovie;
 
-    public void LoadList() {
-        // Loading database information into the list
+    public MoviesPnl() {
+        initComponents();
+        dbConnection = new DBConnection();
+        connection = dbConnection.getConnection();
+        LoadMovieList();
+    }
+
+    public void LoadMovieList() {
+        // Loading movies from database into the list
         try {
-            String query = "SELECT Id,Title,genre,yearstart FROM MOVIES";
+            String query = "SELECT Id,Title,Genre,Yearstart FROM MOVIES";
             ResultSet rs;
-            try (PreparedStatement ps = connect.getConnection().prepareStatement(query)) {
+            try (PreparedStatement ps = connection.prepareStatement(query)) {
                 rs = ps.executeQuery();
                 DefaultListModel dlm = new DefaultListModel();
                 while (rs.next()) {
@@ -28,15 +38,13 @@ public final class MoviesPnl extends javax.swing.JPanel {
             }
             rs.close();
         } catch (SQLException e) {
-            e.getErrorCode();
+            JOptionPane.showMessageDialog(this, e, "Error", ERROR_MESSAGE);
         }
     }
-
-    public MoviesPnl() {
-        initComponents();
-        LoadList();
+    
+    public String GetSelectedMovie() {
+        return selectedMovie;
     }
-
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -137,12 +145,11 @@ public final class MoviesPnl extends javax.swing.JPanel {
 
     private void moviesListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_moviesListValueChanged
         // Action for showing the banner of the film which is on the left hand side of this panel is fired with list selection.
-        
         if (evt.getValueIsAdjusting()) {
-            movieSelection = moviesList.getSelectedValue();
+            selectedMovie = moviesList.getSelectedValue();
             try {
-                String sql = "SELECT * from ADMIN.MOVIES WHERE TITLE = '" + movieSelection + "'";
-                PreparedStatement ps = connect.getConnection().prepareStatement(sql);
+                String sql = "SELECT * from ADMIN.MOVIES WHERE TITLE = '" + selectedMovie + "'";
+                PreparedStatement ps = connection.prepareStatement(sql);
                 ResultSet rs = ps.executeQuery();
                 if (rs.next()) {
                     InputStream is = rs.getBinaryStream("banner");
@@ -156,10 +163,6 @@ public final class MoviesPnl extends javax.swing.JPanel {
             }
         }
     }//GEN-LAST:event_moviesListValueChanged
-
-    public String getSelection() {
-        return movieSelection;
-    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel bannerImage;

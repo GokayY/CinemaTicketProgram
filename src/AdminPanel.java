@@ -1,96 +1,82 @@
 
 import com.opencsv.CSVReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.sql.rowset.serial.SerialBlob;
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import static javax.swing.JOptionPane.ERROR_MESSAGE;
 
 public class AdminPanel extends javax.swing.JFrame {
 
     // Admin Panel for Cinema Ticket Program
-    
-    PurchasePnl PurchasePnl;
-    NewMovieFrame NewMovieFrame;
-    MoviesPnl MoviesPnl;
+    private DBConnection dbConnection;
+    private Connection connection;
 
-    DBCon connect;
-    Connection connection;
-
-    int studentTicket;
-    int adultTicket;
-    int seniorTicket;
-    Blob blob;
-    byte[] image;
-    InputStream inputStream;
+    private int studentTicket;
+    private int adultTicket;
+    private int seniorTicket;
 
     public AdminPanel() {
         initComponents();
-        PurchasePnl = new PurchasePnl();
-        connect = new DBCon();
-        connection = connect.getConnection();
-        NewMovieFrame = new NewMovieFrame();
-        MoviesPnl = new MoviesPnl();
+
+        dbConnection = new DBConnection();
+        connection = dbConnection.getConnection();
 
         this.setTitle("Admin Panel");
-        this.setPrices();
+        this.SetPrices();
     }
 
-    private void setPrices() {
-        
-        // Getting prices from database into JSpinners as default value
-        
-        String sql1 = "SELECT * from ADMIN.PRICE WHERE ticket_type= 'Student' ";
-        String sql2 = "SELECT * from ADMIN.PRICE WHERE ticket_type= 'Adult' ";
-        String sql3 = "SELECT * from ADMIN.PRICE WHERE ticket_type= 'Senior' ";
-        ResultSet rs;
+    public static void main(String args[]) {
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                new AdminPanel().setVisible(true);
+            }
+        });
+    }
 
+    private void SetPrices() {
+        // Getting prices from database into JSpinners as default value        
         try {
-            PreparedStatement ps = connection.prepareStatement(sql1);
+            ResultSet rs;
+
+            //Student price
+            String sql = "SELECT * from ADMIN.PRICE WHERE ticket_type= 'Student' ";
+            PreparedStatement ps = connection.prepareStatement(sql);
             rs = ps.executeQuery();
             if (rs.next()) {
                 studentTicket = rs.getInt("price");
                 studentTicketPrice.setValue(studentTicket);
             }
             rs.close();
-        } catch (SQLException e) {
-            e.getSQLState();
-        }
 
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql2);
-            ResultSet query1 = ps.executeQuery();
-            if (query1.next()) {
-                adultTicket = query1.getInt("price");
+            //Adult price
+            sql = "SELECT * from ADMIN.PRICE WHERE ticket_type= 'Adult' ";
+            ps = connection.prepareStatement(sql);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                adultTicket = rs.getInt("price");
                 adultTicketPrice.setValue(adultTicket);
             }
-            query1.close();
-        } catch (SQLException e) {
-            e.getSQLState();
-        }
+            rs.close();
 
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql3);
-            ResultSet query2 = ps.executeQuery();
-            if (query2.next()) {
-                seniorTicket = query2.getInt("price");
+            //Senior price
+            sql = "SELECT * from ADMIN.PRICE WHERE ticket_type= 'Senior' ";
+            ps = connection.prepareStatement(sql);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                seniorTicket = rs.getInt("price");
                 seniorTicketPrice.setValue(seniorTicket);
             }
-            query2.close();
+            rs.close();
         } catch (SQLException e) {
-            e.getSQLState();
+            JOptionPane.showMessageDialog(this, e, "Error", ERROR_MESSAGE);
         }
     }
 
@@ -322,39 +308,32 @@ public class AdminPanel extends javax.swing.JFrame {
     }//GEN-LAST:event_NewMovieButtonActionPerformed
 
     private void CSVUploadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CSVUploadButtonActionPerformed
-        
         // Uploading movies into movies database with CSV File. 
-        
         JFileChooser fc = new JFileChooser();
         fc.showOpenDialog(null);
         File file = fc.getSelectedFile();
 
         // If condition is used for not having nullpointerexception
         if (file != null) {
-            String filename = file.getAbsolutePath();
-            filePathTag.setText(filename);
-
-            CSVReader reader = null;
-
             try {
-                reader = new CSVReader(new FileReader(filename));
-            } catch (FileNotFoundException ex) {
-                Logger.getLogger(AdminPanel.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            String[] nextLine;
-            int id = 0;
-            try {
-                String querId = "SELECT MAX(ID) ID FROM MOVIES";
-                PreparedStatement ps = connection.prepareStatement(querId);
+                //Determine next Id value
+                int id = 0;
+                String queryId = "SELECT MAX(ID) ID FROM MOVIES";
+                PreparedStatement ps = connection.prepareStatement(queryId);
                 ResultSet rs = ps.executeQuery();
                 if (rs.next()) {
-                    id = rs.getInt("id");
+                    id = rs.getInt("ID");
                 }
+
+                String filename = file.getAbsolutePath();
+                filePathTag.setText(filename);
+                CSVReader reader = new CSVReader(new FileReader(filename));
+                String[] nextLine;
+
                 while ((nextLine = reader.readNext()) != null) {
-                    id ++;
-                    
+                    id++;
+
                     // Insert command for database with multiple values
-                    
                     String query = "INSERT INTO MOVIES(ID,TITLE,GENRE,YEARSTART,BANNER ) VALUES (?,?,?,?,?)";
                     PreparedStatement statement = connection.prepareStatement(query);
                     statement.setInt(1, id);
@@ -363,23 +342,20 @@ public class AdminPanel extends javax.swing.JFrame {
                     statement.setInt(4, Integer.valueOf(nextLine[2].trim()));
                     String filePath = nextLine[3];
 
+                    //convert image file to blob object
                     InputStream input = getClass().getResourceAsStream(filePath);
-
-                    image = new byte[input.available()];
-                    input.read(image);
-                    Blob bb = new SerialBlob(image);
-                    statement.setBlob(5, bb);
+                    byte[] imageArray = new byte[input.available()];
+                    input.read(imageArray);
+                    statement.setBlob(5, new SerialBlob(imageArray));
                     statement.executeUpdate();
-
                 }
                 connection.commit();
                 connection.close();
-            } catch (SQLException ex) {
-                ex.setNextException(ex);
-            } catch (IOException ex) {
-                Logger.getLogger(AdminPanel.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (SQLException | IOException ex) {
+                JOptionPane.showMessageDialog(this, ex, "Error", ERROR_MESSAGE);
             }
         }
+
     }//GEN-LAST:event_CSVUploadButtonActionPerformed
 
     private void exitButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitButtonActionPerformed
@@ -387,9 +363,7 @@ public class AdminPanel extends javax.swing.JFrame {
     }//GEN-LAST:event_exitButtonActionPerformed
 
     private void saveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveButtonActionPerformed
-        
         // Taking price info from JSpinner and Inserting them into database. 
-        
         try {
             String querPrStu = "UPDATE ADMIN.PRICE SET PRICE = " + studentTicketPrice.getValue()
                     + "WHERE TICKET_TYPE = 'Student'";
@@ -407,29 +381,9 @@ public class AdminPanel extends javax.swing.JFrame {
             connection.commit();
             connection.close();
         } catch (SQLException ex) {
-            Logger.getLogger(AdminPanel.class.getName()).log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(this, ex, "Error", ERROR_MESSAGE);
         }
-
     }//GEN-LAST:event_saveButtonActionPerformed
-
-    public static void main(String args[]) {
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(AdminPanel.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new AdminPanel().setVisible(true);
-            }
-        });
-    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton CSVUploadButton;
