@@ -13,19 +13,18 @@ import static javax.swing.JOptionPane.ERROR_MESSAGE;
 public final class MoviesPnl extends javax.swing.JPanel {
 
     private DBConnection dbConnection;
-    private Connection connection;
     private String selectedMovie;
 
     public MoviesPnl() {
         initComponents();
         dbConnection = new DBConnection();
-        connection = dbConnection.getConnection();
+        
         LoadMovieList();
     }
 
     public void LoadMovieList() {
         // Loading movies from database into the list
-        try {
+        try (Connection connection = dbConnection.getConnection()){
             String query = "SELECT Id,Title,Genre,Yearstart FROM MOVIES";
             ResultSet rs;
             try (PreparedStatement ps = connection.prepareStatement(query)) {
@@ -50,12 +49,11 @@ public final class MoviesPnl extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        bannerPnl = new javax.swing.JPanel();
-        bannerImage = new javax.swing.JLabel();
-        listPnl = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         moviesList = new javax.swing.JList<>();
-        jLabel1 = new javax.swing.JLabel();
+        bannerPnl = new javax.swing.JPanel();
+        bannerImage = new javax.swing.JLabel();
+        title = new javax.swing.JLabel();
 
         setBackground(new java.awt.Color(204, 204, 204));
         setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
@@ -63,6 +61,21 @@ public final class MoviesPnl extends javax.swing.JPanel {
         setMinimumSize(new java.awt.Dimension(650, 360));
         setName(""); // NOI18N
         setPreferredSize(new java.awt.Dimension(650, 360));
+
+        jScrollPane1.setMaximumSize(new java.awt.Dimension(274, 250));
+        jScrollPane1.setMinimumSize(new java.awt.Dimension(274, 250));
+        jScrollPane1.setName("listPnl"); // NOI18N
+        jScrollPane1.setPreferredSize(new java.awt.Dimension(274, 250));
+
+        moviesList.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        moviesList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        moviesList.setToolTipText("");
+        moviesList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
+                moviesListValueChanged(evt);
+            }
+        });
+        jScrollPane1.setViewportView(moviesList);
 
         bannerPnl.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
         bannerPnl.setMaximumSize(new java.awt.Dimension(274, 250));
@@ -85,61 +98,37 @@ public final class MoviesPnl extends javax.swing.JPanel {
             .addComponent(bannerImage, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 246, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
 
-        listPnl.setBorder(javax.swing.BorderFactory.createEtchedBorder());
-
-        moviesList.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
-        moviesList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        moviesList.setToolTipText("");
-        moviesList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
-            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
-                moviesListValueChanged(evt);
-            }
-        });
-        jScrollPane1.setViewportView(moviesList);
-
-        javax.swing.GroupLayout listPnlLayout = new javax.swing.GroupLayout(listPnl);
-        listPnl.setLayout(listPnlLayout);
-        listPnlLayout.setHorizontalGroup(
-            listPnlLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 270, Short.MAX_VALUE)
-        );
-        listPnlLayout.setVerticalGroup(
-            listPnlLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 246, Short.MAX_VALUE)
-        );
-
-        jLabel1.setFont(new java.awt.Font("Tahoma", 1, 24)); // NOI18N
-        jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel1.setText("Movies");
-        jLabel1.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jLabel1.setVerticalTextPosition(javax.swing.SwingConstants.TOP);
+        title.setFont(new java.awt.Font("Tahoma", 1, 24)); // NOI18N
+        title.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        title.setText("Movies");
+        title.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        title.setVerticalTextPosition(javax.swing.SwingConstants.TOP);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(268, 268, 268)
-                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(27, 27, 27)
-                        .addComponent(listPnl, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(48, 48, 48)
-                        .addComponent(bannerPnl, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(27, 27, 27)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(48, 48, 48)
+                .addComponent(bannerPnl, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(27, 27, 27))
+            .addGroup(layout.createSequentialGroup()
+                .addGap(260, 260, 260)
+                .addComponent(title, javax.swing.GroupLayout.PREFERRED_SIZE, 122, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(20, 20, 20)
-                .addComponent(jLabel1)
-                .addGap(7, 7, 7)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(listPnl, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(bannerPnl, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(50, 50, 50))
+                .addComponent(title)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(bannerPnl, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 250, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(51, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -147,7 +136,7 @@ public final class MoviesPnl extends javax.swing.JPanel {
         // Action for showing the banner of the film which is on the left hand side of this panel is fired with list selection.
         if (evt.getValueIsAdjusting()) {
             selectedMovie = moviesList.getSelectedValue();
-            try {
+            try (Connection connection = dbConnection.getConnection()){
                 String sql = "SELECT * from ADMIN.MOVIES WHERE TITLE = '" + selectedMovie + "'";
                 PreparedStatement ps = connection.prepareStatement(sql);
                 ResultSet rs = ps.executeQuery();
@@ -167,9 +156,8 @@ public final class MoviesPnl extends javax.swing.JPanel {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel bannerImage;
     private javax.swing.JPanel bannerPnl;
-    private javax.swing.JLabel jLabel1;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JPanel listPnl;
     private javax.swing.JList<String> moviesList;
+    private javax.swing.JLabel title;
     // End of variables declaration//GEN-END:variables
 }

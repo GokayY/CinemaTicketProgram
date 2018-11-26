@@ -38,6 +38,8 @@ public class NewMovieFrame extends javax.swing.JFrame {
         yearInput = new javax.swing.JTextField();
         genreInput = new javax.swing.JTextField();
 
+        setLocation(new java.awt.Point(500, 250));
+
         jLabel4.setText("Banner");
 
         jLabel5.setInheritsPopupMenu(false);
@@ -149,6 +151,8 @@ public class NewMovieFrame extends javax.swing.JFrame {
     private void SaveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_SaveButtonActionPerformed
         // This button is used as insert command in database
 
+        DBConnection dbConnection = new DBConnection();
+        
         // Declaring Variables
         String year = yearInput.getText();
         String title = titleInput.getText();
@@ -159,10 +163,8 @@ public class NewMovieFrame extends javax.swing.JFrame {
                 || genre == null || genre.isEmpty() || image == null || image.length == 0) {
             JOptionPane.showMessageDialog(this, "Please enter all information.", "Bad Input", INFORMATION_MESSAGE);
         } else {
-            try {
+            try (Connection connection = dbConnection.getConnection()) {
                 int id = 0;
-                DBConnection dbConnection = new DBConnection();
-                Connection connection = dbConnection.getConnection();
 
                 // Taking the last id in database for uniqueness 
                 // New id  for new record is set as id++;

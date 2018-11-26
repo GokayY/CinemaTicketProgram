@@ -10,8 +10,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
@@ -30,14 +28,12 @@ public class PurchasePnl extends javax.swing.JPanel {
 
     private MoviesPnl moviesPnl;
     private DBConnection dbConnection;
-    private Connection connection;
     public String movieTitle;
 
     public PurchasePnl() {
         initComponents();
 
         dbConnection = new DBConnection();
-        connection = dbConnection.getConnection();
         moviesPnl = new MoviesPnl();
 
         // Setting default date for JCalendar
@@ -59,7 +55,7 @@ public class PurchasePnl extends javax.swing.JPanel {
         // Showing prices in labels 
         // Prices are located in ADMIN.PRICE table in database.
 
-        try {
+        try (Connection connection = dbConnection.getConnection()) {
             ResultSet rs;
 
             //Student price
@@ -94,12 +90,6 @@ public class PurchasePnl extends javax.swing.JPanel {
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, e, "Error", ERROR_MESSAGE);
         }
-    }
-
-    private void setMinSelectableDate(Date min) {
-        // Setting minimum selectable date as today for JCalendar
-        jcalendar.setMinSelectableDate(min);
-        dateEditor.setMinSelectableDate(min);
     }
 
     @SuppressWarnings("unchecked")
@@ -138,7 +128,6 @@ public class PurchasePnl extends javax.swing.JPanel {
         setMinimumSize(new java.awt.Dimension(650, 360));
         setName("purchasePnl"); // NOI18N
         setPreferredSize(new java.awt.Dimension(650, 360));
-        setLayout(new java.awt.GridBagLayout());
 
         ticketsPnl.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.RAISED));
         ticketsPnl.setFocusable(false);
@@ -294,7 +283,7 @@ public class PurchasePnl extends javax.swing.JPanel {
                         .addGroup(ticketsPnlLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addComponent(studentPriceTag, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(studentPiece, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 10, Short.MAX_VALUE)
                         .addGroup(ticketsPnlLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addComponent(adultPiece, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addGroup(ticketsPnlLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -303,7 +292,7 @@ public class PurchasePnl extends javax.swing.JPanel {
                     .addGroup(ticketsPnlLayout.createSequentialGroup()
                         .addGap(12, 12, 12)
                         .addComponent(jLabel3)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 11, Short.MAX_VALUE)
                 .addGroup(ticketsPnlLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(ticketsPnlLayout.createSequentialGroup()
                         .addGroup(ticketsPnlLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
@@ -318,14 +307,6 @@ public class PurchasePnl extends javax.swing.JPanel {
                 .addComponent(purchaseButton, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(7, 48, 50, 25);
-        add(ticketsPnl, gridBagConstraints);
 
         DatePanel.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.RAISED));
         DatePanel.setMaximumSize(new java.awt.Dimension(274, 250));
@@ -384,23 +365,33 @@ public class PurchasePnl extends javax.swing.JPanel {
         gridBagConstraints.insets = new java.awt.Insets(34, 3, 0, 2);
         DatePanel.add(jSeparator1, gridBagConstraints);
 
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(7, 29, 50, 0);
-        add(DatePanel, gridBagConstraints);
-
         jLabel1.setFont(new java.awt.Font("Tahoma", 1, 24)); // NOI18N
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel1.setText("Purchase");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(24, 277, 0, 0);
-        add(jLabel1, gridBagConstraints);
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
+        this.setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(275, 275, 275)
+                .addComponent(jLabel1))
+            .addGroup(layout.createSequentialGroup()
+                .addGap(27, 27, 27)
+                .addComponent(DatePanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(48, 48, 48)
+                .addComponent(ticketsPnl, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(22, 22, 22)
+                .addComponent(jLabel1)
+                .addGap(7, 7, 7)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(DatePanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(ticketsPnl, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+        );
     }// </editor-fold>//GEN-END:initComponents
 
     private void dateSelectionPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_dateSelectionPropertyChange
@@ -425,7 +416,7 @@ public class PurchasePnl extends javax.swing.JPanel {
             String id = String.valueOf(System.nanoTime());
 
             // Recording info from customer into database
-            try {
+            try (Connection connection = dbConnection.getConnection()) {
 
                 String query = "INSERT INTO PURCHASE(Booking_Id,MovieTitle,Time,Date,StudentTicket,AdultTicket,SeniorTicket,TotalAmount) VALUES (?,?,?,?,?,?,?,?)";
                 PreparedStatement statement = connection.prepareStatement(query);
@@ -446,18 +437,18 @@ public class PurchasePnl extends javax.swing.JPanel {
             }
 
             // Booking information for customer which is shown in JOptionPane
-           String line =  System.getProperty("line.separator");
-            String thnx = "Booking ID : " + id + line + 
-                     "Movie Title : " + movieTitle + line + 
-                     "Date : " + DateFormat.getDateInstance().format(date) + line + 
-                     "Time : " + time + line + 
-                     "Adult Ticket : " + adult +  line + 
-                     "Student Ticket : " + student +  line + 
-                     "Senior Ticket : " + senior +  line + 
-                     "Total Amount : " + total +  line + 
-                    "-----------------------------------------" +  line + 
-                     "Thank you for your purchase. ";
-            
+            String line = System.getProperty("line.separator");
+            String thnx = "Booking ID : " + id + line
+                    + "Movie Title : " + movieTitle + line
+                    + "Date : " + DateFormat.getDateInstance().format(date) + line
+                    + "Time : " + time + line
+                    + "Adult Ticket : " + adult + line
+                    + "Student Ticket : " + student + line
+                    + "Senior Ticket : " + senior + line
+                    + "Total Amount : " + total + line
+                    + "-----------------------------------------" + line
+                    + "Thank you for your purchase. ";
+
             JOptionPane.showMessageDialog(this, thnx, "Transaction Completed.", INFORMATION_MESSAGE);
             // TxtFile creation and Printing Receipt
             JFileChooser file = new JFileChooser();
@@ -466,12 +457,11 @@ public class PurchasePnl extends javax.swing.JPanel {
             if (dialogResult == JOptionPane.YES_OPTION) {
                 file.setSelectedFile(new File("Receipt.txt"));
                 file.showSaveDialog(this);
-                try {
-                    FileWriter filestream = new FileWriter(file.getSelectedFile());
+
+                try (FileWriter filestream = new FileWriter(file.getSelectedFile())) {
                     filestream.write(thnx);
-                    filestream.close();
                 } catch (IOException ex) {
-                    Logger.getLogger(PurchasePnl.class.getName()).log(Level.SEVERE, null, ex);
+                    JOptionPane.showMessageDialog(this, ex, "Error", ERROR_MESSAGE);
                 }
             }
 

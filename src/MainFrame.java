@@ -59,6 +59,7 @@ public class MainFrame extends javax.swing.JFrame {
         setLocation(new java.awt.Point(500, 250));
         setMaximumSize(new java.awt.Dimension(875, 440));
         setMinimumSize(new java.awt.Dimension(875, 440));
+        setPreferredSize(new java.awt.Dimension(875, 440));
         setResizable(false);
         getContentPane().setLayout(new java.awt.GridBagLayout());
 

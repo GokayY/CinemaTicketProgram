@@ -8,6 +8,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.sql.rowset.serial.SerialBlob;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -17,7 +19,6 @@ public class AdminPanel extends javax.swing.JFrame {
 
     // Admin Panel for Cinema Ticket Program
     private DBConnection dbConnection;
-    private Connection connection;
 
     private int studentTicket;
     private int adultTicket;
@@ -27,7 +28,6 @@ public class AdminPanel extends javax.swing.JFrame {
         initComponents();
 
         dbConnection = new DBConnection();
-        connection = dbConnection.getConnection();
 
         this.setTitle("Admin Panel");
         this.SetPrices();
@@ -43,11 +43,11 @@ public class AdminPanel extends javax.swing.JFrame {
 
     private void SetPrices() {
         // Getting prices from database into JSpinners as default value        
-        try {
+        try (Connection connection = dbConnection.getConnection()) {
             ResultSet rs;
 
             //Student price
-            String sql = "SELECT * from ADMIN.PRICE WHERE ticket_type= 'Student' ";
+            String sql = "SELECT * from ADMIN.PRICE WHERE tickettype= 'Student' ";
             PreparedStatement ps = connection.prepareStatement(sql);
             rs = ps.executeQuery();
             if (rs.next()) {
@@ -57,7 +57,7 @@ public class AdminPanel extends javax.swing.JFrame {
             rs.close();
 
             //Adult price
-            sql = "SELECT * from ADMIN.PRICE WHERE ticket_type= 'Adult' ";
+            sql = "SELECT * from ADMIN.PRICE WHERE tickettype= 'Adult' ";
             ps = connection.prepareStatement(sql);
             rs = ps.executeQuery();
             if (rs.next()) {
@@ -67,7 +67,7 @@ public class AdminPanel extends javax.swing.JFrame {
             rs.close();
 
             //Senior price
-            sql = "SELECT * from ADMIN.PRICE WHERE ticket_type= 'Senior' ";
+            sql = "SELECT * from ADMIN.PRICE WHERE tickettype= 'Senior' ";
             ps = connection.prepareStatement(sql);
             rs = ps.executeQuery();
             if (rs.next()) {
@@ -223,7 +223,7 @@ public class AdminPanel extends javax.swing.JFrame {
         gridBagConstraints.insets = new java.awt.Insets(41, 42, 64, 0);
         jPanel3.add(NewMovieButton, gridBagConstraints);
 
-        jLabel7.setText("Note: CSV File format \"Movie Title,Year,Genre,FilePath");
+        jLabel7.setText("Note: CSV File format  \"Movie Title,Genre,Year,FilePath");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
@@ -315,7 +315,7 @@ public class AdminPanel extends javax.swing.JFrame {
 
         // If condition is used for not having nullpointerexception
         if (file != null) {
-            try {
+            try (Connection connection = dbConnection.getConnection()) {
                 //Determine next Id value
                 int id = 0;
                 String queryId = "SELECT MAX(ID) ID FROM MOVIES";
@@ -363,14 +363,16 @@ public class AdminPanel extends javax.swing.JFrame {
     }//GEN-LAST:event_exitButtonActionPerformed
 
     private void saveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveButtonActionPerformed
-        // Taking price info from JSpinner and Inserting them into database. 
-        try {
+        // Taking price info from JSpinner and Inserting them into database.
+
+        try (Connection connection = dbConnection.getConnection()) {
             String querPrStu = "UPDATE ADMIN.PRICE SET PRICE = " + studentTicketPrice.getValue()
-                    + "WHERE TICKET_TYPE = 'Student'";
+                    + "WHERE tickettype = 'Student'";
             String querPrAdu = "UPDATE ADMIN.PRICE SET PRICE = " + adultTicketPrice.getValue()
-                    + "WHERE TICKET_TYPE = 'Adult' ";
+                    + "WHERE tickettype = 'Adult' ";
             String querPrSen = "UPDATE ADMIN.PRICE SET PRICE = " + seniorTicketPrice.getValue()
-                    + "WHERE TICKET_TYPE = 'Senior' ";
+                    + "WHERE tickettype = 'Senior' ";
+
             PreparedStatement execPrStu = connection.prepareStatement(querPrStu);
             PreparedStatement execPrAd = connection.prepareStatement(querPrAdu);
             PreparedStatement execPrSe = connection.prepareStatement(querPrSen);
