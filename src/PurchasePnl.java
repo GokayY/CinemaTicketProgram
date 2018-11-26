@@ -63,7 +63,7 @@ public class PurchasePnl extends javax.swing.JPanel {
             ResultSet rs;
 
             //Student price
-            String sql = "SELECT * from ADMIN.PRICE WHERE ticket_type= 'Student' ";
+            String sql = "SELECT * from ADMIN.PRICE WHERE tickettype= 'Student' ";
             PreparedStatement ps = connection.prepareStatement(sql);
             rs = ps.executeQuery();
             if (rs.next()) {
@@ -73,7 +73,7 @@ public class PurchasePnl extends javax.swing.JPanel {
             rs.close();
 
             //Adult price
-            sql = "SELECT * from ADMIN.PRICE WHERE ticket_type= 'Adult' ";
+            sql = "SELECT * from ADMIN.PRICE WHERE tickettype= 'Adult' ";
             ps = connection.prepareStatement(sql);
             rs = ps.executeQuery();
             if (rs.next()) {
@@ -83,7 +83,7 @@ public class PurchasePnl extends javax.swing.JPanel {
             rs.close();
 
             //Senior price
-            sql = "SELECT * from ADMIN.PRICE WHERE ticket_type= 'Senior' ";
+            sql = "SELECT * from ADMIN.PRICE WHERE tickettype= 'Senior' ";
             ps = dbConnection.getConnection().prepareStatement(sql);
             rs = ps.executeQuery();
             if (rs.next()) {
