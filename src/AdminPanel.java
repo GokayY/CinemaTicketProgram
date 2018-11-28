@@ -8,21 +8,21 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.sql.rowset.serial.SerialBlob;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
+import static javax.swing.JOptionPane.INFORMATION_MESSAGE;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class AdminPanel extends javax.swing.JFrame {
 
     // Admin Panel for Cinema Ticket Program
     private DBConnection dbConnection;
 
-    private int studentTicket;
-    private int adultTicket;
-    private int seniorTicket;
+    public int studentTicket;
+    public int adultTicket;
+    public int seniorTicket;
 
     public AdminPanel() {
         initComponents();
@@ -310,15 +310,17 @@ public class AdminPanel extends javax.swing.JFrame {
     private void CSVUploadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CSVUploadButtonActionPerformed
         // Uploading movies into movies database with CSV File. 
         JFileChooser fc = new JFileChooser();
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("CSV Files", "csv", "csv");
+        fc.setFileFilter(filter);
         fc.showOpenDialog(null);
         File file = fc.getSelectedFile();
-
+        int counterint = 0;
         // If condition is used for not having nullpointerexception
         if (file != null) {
             try (Connection connection = dbConnection.getConnection()) {
                 //Determine next Id value
                 int id = 0;
-                String queryId = "SELECT MAX(ID) ID FROM MOVIES";
+                String queryId = "SELECT MAX(ID) ID FROM ADMIN.MOVIES";
                 PreparedStatement ps = connection.prepareStatement(queryId);
                 ResultSet rs = ps.executeQuery();
                 if (rs.next()) {
@@ -326,36 +328,61 @@ public class AdminPanel extends javax.swing.JFrame {
                 }
 
                 String filename = file.getAbsolutePath();
-                filePathTag.setText(filename);
+
                 CSVReader reader = new CSVReader(new FileReader(filename));
                 String[] nextLine;
 
                 while ((nextLine = reader.readNext()) != null) {
-                    id++;
+                    counterint+=1;
+                    id += 1;
 
                     // Insert command for database with multiple values
-                    String query = "INSERT INTO MOVIES(ID,TITLE,GENRE,YEARSTART,BANNER ) VALUES (?,?,?,?,?)";
+                    String query = "INSERT INTO MOVIES(ID,TITLE,GENRE,YEARS,BANNER ) VALUES (?,?,?,?,?)";
                     PreparedStatement statement = connection.prepareStatement(query);
                     statement.setInt(1, id);
-                    statement.setString(2, nextLine[0]);
-                    statement.setString(3, nextLine[1]);
-                    statement.setInt(4, Integer.valueOf(nextLine[2].trim()));
-                    String filePath = nextLine[3];
+
+                    String filePath = null;
+                    try {
+                        String title = nextLine[0];
+                        title = title.replace("'", "");
+                        title = title.replace("\"", "");
+                        title = title.replace("\\", "");
+                        statement.setString(2, title.trim());
+
+                        String genre = nextLine[1];
+                        genre = genre.replace("'", "");
+                        genre = genre.replace("\"", "");
+                        genre = genre.replace("\\", "");
+                        statement.setString(3, genre.trim());
+                        statement.setInt(4, Integer.valueOf(nextLine[2].trim()));
+                        filePath = nextLine[3].trim();
+                    } catch (Exception e) {
+                        JOptionPane.showMessageDialog(this, "Error in input process. Please try again with correct input.");
+                        connection.rollback();
+                    }
 
                     //convert image file to blob object
-                    InputStream input = getClass().getResourceAsStream(filePath);
-                    byte[] imageArray = new byte[input.available()];
-                    input.read(imageArray);
+                    InputStream input;
+                    byte[] imageArray = null;
+                    try {
+                        input = getClass().getResourceAsStream(filePath);
+                        imageArray = new byte[input.available()];
+                        input.read(imageArray);
+                    } catch (IOException e) {
+                        JOptionPane.showMessageDialog(this, "Error in image process. Please try again with correct input.");
+                    }
+                    
                     statement.setBlob(5, new SerialBlob(imageArray));
                     statement.executeUpdate();
                 }
-                connection.commit();
-                connection.close();
+                String counter = Integer.toString(counterint);
+                String message = counter + " lines saved into database.";
+                JOptionPane.showMessageDialog(this, message, "Saved", INFORMATION_MESSAGE);
+                filePathTag.setText("");
             } catch (SQLException | IOException ex) {
                 JOptionPane.showMessageDialog(this, ex, "Error", ERROR_MESSAGE);
             }
         }
-
     }//GEN-LAST:event_CSVUploadButtonActionPerformed
 
     private void exitButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitButtonActionPerformed
@@ -380,8 +407,8 @@ public class AdminPanel extends javax.swing.JFrame {
             execPrStu.executeUpdate();
             execPrAd.executeUpdate();
             execPrSe.executeUpdate();
-            connection.commit();
-            connection.close();
+
+            JOptionPane.showMessageDialog(this, "Ticket Prices Saved", "Saved", INFORMATION_MESSAGE);
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(this, ex, "Error", ERROR_MESSAGE);
         }

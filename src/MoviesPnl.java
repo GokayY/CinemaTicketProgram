@@ -18,14 +18,14 @@ public final class MoviesPnl extends javax.swing.JPanel {
     public MoviesPnl() {
         initComponents();
         dbConnection = new DBConnection();
-        
+
         LoadMovieList();
     }
 
     public void LoadMovieList() {
         // Loading movies from database into the list
-        try (Connection connection = dbConnection.getConnection()){
-            String query = "SELECT Id,Title,Genre,Yearstart FROM MOVIES";
+        try (Connection connection = dbConnection.getConnection()) {
+            String query = "SELECT * FROM MOVIES";
             ResultSet rs;
             try (PreparedStatement ps = connection.prepareStatement(query)) {
                 rs = ps.executeQuery();
@@ -40,7 +40,7 @@ public final class MoviesPnl extends javax.swing.JPanel {
             JOptionPane.showMessageDialog(this, e, "Error", ERROR_MESSAGE);
         }
     }
-    
+
     public String GetSelectedMovie() {
         return selectedMovie;
     }
@@ -135,9 +135,12 @@ public final class MoviesPnl extends javax.swing.JPanel {
     private void moviesListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_moviesListValueChanged
         // Action for showing the banner of the film which is on the left hand side of this panel is fired with list selection.
         if (evt.getValueIsAdjusting()) {
+            bannerImage.setText(null);
+            bannerImage.setIcon(null);
             selectedMovie = moviesList.getSelectedValue();
-            try (Connection connection = dbConnection.getConnection()){
-                String sql = "SELECT * from ADMIN.MOVIES WHERE TITLE = '" + selectedMovie + "'";
+
+            try (Connection connection = dbConnection.getConnection()) {
+                String sql = "SELECT * from ADMIN.MOVIES WHERE Title = '" + selectedMovie + "'";
                 PreparedStatement ps = connection.prepareStatement(sql);
                 ResultSet rs = ps.executeQuery();
                 if (rs.next()) {
@@ -148,6 +151,7 @@ public final class MoviesPnl extends javax.swing.JPanel {
                     bannerImage.setIcon(ic);
                 }
             } catch (IOException | SQLException e) {
+                bannerImage.setText(null);
                 bannerImage.setText("No Image Found.");
             }
         }

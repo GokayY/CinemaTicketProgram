@@ -10,6 +10,7 @@ public class MainFrame extends javax.swing.JFrame {
 
     public MainFrame() {
         // initializing JPanels
+        
         initComponents();
         purchasePnl = new PurchasePnl();
         moviesPnl = new MoviesPnl();

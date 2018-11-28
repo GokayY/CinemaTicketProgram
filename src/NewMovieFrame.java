@@ -38,7 +38,7 @@ public class NewMovieFrame extends javax.swing.JFrame {
         yearInput = new javax.swing.JTextField();
         genreInput = new javax.swing.JTextField();
 
-        setLocation(new java.awt.Point(500, 250));
+        setLocation(new java.awt.Point(750, 375));
 
         jLabel4.setText("Banner");
 
@@ -152,17 +152,34 @@ public class NewMovieFrame extends javax.swing.JFrame {
         // This button is used as insert command in database
 
         DBConnection dbConnection = new DBConnection();
-        
-        // Declaring Variables
-        String year = yearInput.getText();
-        String title = titleInput.getText();
-        String genre = genreInput.getText();
 
+        // Declaring Variables
+        String year = yearInput.getText().trim();
+        String title = titleInput.getText().trim();
+        String genre = genreInput.getText().trim();
+        
+        title = title.replace("\'", "");
+        title = title.replace("\"", "");
+
+        genre = genre.replace("\'", "");
+        genre = genre.replace("\"", "");
+        
+        // Year field type check
+        try {
+            Integer.parseInt(year);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Year field has not the correct type of input.", "Type Error", ERROR_MESSAGE);
+            yearInput.setText("");
+            year = null;
+        } 
+        
         // if condition is for not to have wrong input into database
         if (year == null || year.isEmpty() || title == null || title.isEmpty()
                 || genre == null || genre.isEmpty() || image == null || image.length == 0) {
-            JOptionPane.showMessageDialog(this, "Please enter all information.", "Bad Input", INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please enter all information.", "Empty Input", INFORMATION_MESSAGE);
         } else {
+
+            // Transaction with Database
             try (Connection connection = dbConnection.getConnection()) {
                 int id = 0;
 
@@ -176,7 +193,7 @@ public class NewMovieFrame extends javax.swing.JFrame {
                 }
                 id += 1;
                 // Inserting into database
-                String sql = "INSERT INTO MOVIES(ID,TITLE,GENRE,YEARSTART,BANNER ) VALUES (?,?,?,?,?)";
+                String sql = "INSERT INTO MOVIES(ID,TITLE,GENRE,YEARS,BANNER ) VALUES (?,?,?,?,?)";
                 PreparedStatement statement = connection.prepareStatement(sql);
 
                 statement.setInt(1, id);
@@ -189,7 +206,9 @@ public class NewMovieFrame extends javax.swing.JFrame {
                 connection.commit();
                 connection.close();
 
+                JOptionPane.showMessageDialog(this, "Movie Saved.", "Saved", INFORMATION_MESSAGE);
                 this.setVisible(false);
+
             } catch (SQLException ex) {
                 JOptionPane.showMessageDialog(this, ex, "Error", ERROR_MESSAGE);
             }
@@ -217,13 +236,6 @@ public class NewMovieFrame extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_uploadButtonActionPerformed
 
-    public static void main(String args[]) {
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new NewMovieFrame().setVisible(true);
-            }
-        });
-    }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton SaveButton;
     private javax.swing.JButton exitButton;

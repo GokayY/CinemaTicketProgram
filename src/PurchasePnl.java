@@ -35,7 +35,7 @@ public class PurchasePnl extends javax.swing.JPanel {
 
         dbConnection = new DBConnection();
         moviesPnl = new MoviesPnl();
-
+        
         // Setting default date for JCalendar
         dateSelection.setDate(new Date());
         this.ShowPrices();
@@ -410,7 +410,7 @@ public class PurchasePnl extends javax.swing.JPanel {
 
         //if condition for not to have nullpointerException
         if ((total == 0) || (date == null) || movieTitle == null) {
-            JOptionPane.showMessageDialog(this, "Please Specify Movie Name, Tickets, Date and Time.", "Empty Fields", INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please Specify Number of Tickets.", "Empty Fields", INFORMATION_MESSAGE);
         } else {
             //Booking ID is set as Timestamp
             String id = String.valueOf(System.nanoTime());
@@ -452,8 +452,7 @@ public class PurchasePnl extends javax.swing.JPanel {
             JOptionPane.showMessageDialog(this, thnx, "Transaction Completed.", INFORMATION_MESSAGE);
             // TxtFile creation and Printing Receipt
             JFileChooser file = new JFileChooser();
-            int dialogResult = JOptionPane.showConfirmDialog(this, "Do you want to print the recipt?", "Receipt", JOptionPane.YES_NO_OPTION, QUESTION_MESSAGE, null);
-            //JOptionPane.sh       showOptionDialog(ticketsPnl, "Do you want to print the recipt?", "Receipt", JOptionPane.YES_NO_OPTION, QUESTION_MESSAGE, null, null, total);
+            int dialogResult = JOptionPane.showConfirmDialog(this, "Do you want to print the receipt?", "Receipt", JOptionPane.YES_NO_OPTION, QUESTION_MESSAGE, null);
             if (dialogResult == JOptionPane.YES_OPTION) {
                 file.setSelectedFile(new File("Receipt.txt"));
                 file.showSaveDialog(this);
